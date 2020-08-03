@@ -1,7 +1,7 @@
 - hosts: master
   tasks:
   - name: Initialising kubeadm and give a range of ip's
-    command: kubeadm init --pod-network-cidr=10.10.1.0/16
+    shell: kubeadm init --pod-network-cidr=10.10.1.0/16
     register: mykey
   - name: create .kube directory
     become: yes
