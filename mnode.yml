@@ -1,0 +1,63 @@
+- hosts: all
+  tasks:
+  - name: Creation of yum repo in Master and Slave node
+    yum_repository:
+      name: aksDoc
+      baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+      description : My docker repo
+      gpgcheck: 0
+  - name: Installation of docker in master and slave node
+    package:
+      name: "docker-ce-18.09.1-3.el7.x86_64"
+      state: present
+  - name: Creation of Kubernetes Repo
+    yum_repository:
+      name: kubDoc
+      baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+      description: Repo for kubeadm , kubectl , kubelet
+      gpgcheck: 0
+  - name: Installation of kubeadm , kubectl and kubelet
+    package:
+      name:
+        - "kubeadm"
+        - "kubectl"
+        - "kubelet"
+      state: present
+      disable_excludes: "kubernetes"
+  - name: Setting selinux to permissive mode (disable)
+    selinux:
+      state: permissive
+      policy: targeted
+  - name: Starting docker  and enable
+    service:
+      name: "docker"
+      state: started
+      enabled: yes
+  - name: Installation of required packages by docker
+    command: "pip3 install docker"
+  - name: Copy daemon.json for Cgroup driver settings in docker
+    copy:
+      src: daemon.json
+      dest: "/etc/docker/daemon.json"
+  - systemd:
+      daemon_reload: yes
+  - name: Restart docker after changing cgroup driver
+    service:
+      name: "docker"
+      state: restarted
+  - name: Disable swap
+    command: swapoff -a
+  - name: On reboot we don't get the swap back on
+    replace:
+      path: /etc/fstab
+      regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+      replace: '# \1'
+  - name: Installation of iproute-tc
+    package:
+      name: "iproute-tc"
+      state: present
+  - name: Starting kubelet  and enable
+    service:
+      name: "kubelet"
+      state: started
+      enabled: yes

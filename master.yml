@@ -1,0 +1,22 @@
+- hosts: master
+  tasks:
+  - name: Initialising kubeadm and give a range of ip's
+    command: kubeadm init --pod-network-cidr=10.10.1.0/16
+    register: mykey
+  - name: create .kube directory
+    become: yes
+    file:
+      path: $HOME/.kube
+      state: directory
+      mode: 0755
+
+  - shell: cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  - shell: chown $(id -u):$(id -g) $HOME/.kube/config
+  - name: install Pod network
+    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/a70459be0084506e4ec919aa1c114638878db11b/Documentation/kube-flannel.yml
+  - name: Key retrieval
+    debug:
+      var: mykey.stdout_lines[-4::]
+  - name: Run pod
+    command: kubectl run mypod --image=vimal13/apache-webserver-php -n kube-system
+

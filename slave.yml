@@ -1,0 +1,4 @@
+- hosts: slave
+  tasks:
+  - name: Joining slave node with master node
+    command: kubeadm join 192.168.0.85:6443 --token bvbfg7.n68ec6f4kc52y99b     --discovery-token-ca-cert-hash sha256:a7831b3364a7c05199e5325b78359dca3ddaec5ad61ff19d95e8e60e946d328a
